@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const AiTools = [
@@ -8,21 +10,21 @@ const AiTools = [
     description:
       "Create crisp, studio-quality product photos instantly with Vilmo’s AI-powered generator.",
     banner: "/product-image.png",
-    path: "/product-image",
+    path: "/ai-tools/product-images",
   },
   {
     name: "Products Video",
     description:
       "Transform static products into dynamic showcase videos crafted by Vilmo’s smart automation.",
     banner: "/product-video.png",
-    path: "/product-video",
+    path: "/ai-tools/product-videos",
   },
   {
     name: "Products Avatar",
     description:
       "Animate your products with lifelike AI avatars to deliver interactive, customer-ready experiences.",
     banner: "/product-avatar.png",
-    path: "/product-avatar",
+    path: "/ai-tools/product-avatars",
   },
 ];
 
@@ -47,7 +49,11 @@ const AiToolList = () => {
               <div>
                 <h2 className="font-bold text-lg">{tool.name}</h2>
                 <p className="opacity-60 mt-2 text-xs">{tool.description}</p>
-                <Button className="mt-4">Try it out</Button>
+                <Button className="mt-4">
+                  <Link className="w-full h-full" href={tool.path}>
+                    Try it out
+                  </Link>
+                </Button>
               </div>
             </div>
           ))}

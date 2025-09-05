@@ -58,7 +58,7 @@ const items = [
 
 export function AppSidebar() {
   const path = usePathname();
-  const user = useAuthContext();
+  const { user } = useAuthContext();
 
   return (
     <Sidebar>
@@ -102,14 +102,17 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        {!user.user ? (
+        {!user ? (
           <Button>
             <Link href={"/login"} className="w-full h-full">
               Login
             </Link>
           </Button>
         ) : (
-          <ProfileAvatar />
+          <div className="flex justify-between items-center py-2 px-4 bg-zinc-800 rounded-sm">
+            <h2>Profile</h2>
+            <ProfileAvatar />
+          </div>
         )}
         <h2 className="p-2 text-gray-600 text-sm">
           &copy; 2025 Ok-Perspectives

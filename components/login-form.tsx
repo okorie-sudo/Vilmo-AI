@@ -1,12 +1,22 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Authentication from "@/app/_components/Authentication";
+import { useAuthContext } from "@/app/provider";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoaderIcon } from "lucide-react";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
+
+  const user = useAuthContext();
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden shadow-lg rounded-2xl">
