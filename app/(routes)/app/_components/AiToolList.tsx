@@ -1,0 +1,59 @@
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import React from "react";
+
+const AiTools = [
+  {
+    name: "Products Image",
+    description:
+      "Create crisp, studio-quality product photos instantly with Vilmo’s AI-powered generator.",
+    banner: "/product-image.png",
+    path: "/product-image",
+  },
+  {
+    name: "Products Video",
+    description:
+      "Transform static products into dynamic showcase videos crafted by Vilmo’s smart automation.",
+    banner: "/product-video.png",
+    path: "/product-video",
+  },
+  {
+    name: "Products Avatar",
+    description:
+      "Animate your products with lifelike AI avatars to deliver interactive, customer-ready experiences.",
+    banner: "/product-avatar.png",
+    path: "/product-avatar",
+  },
+];
+
+const AiToolList = () => {
+  return (
+    <div className="">
+      <h2 className="font-bold text-2xl mb-2">Tools</h2>
+      <div className="flex justify-end flex-wrap items-center gap-3">
+        {AiTools &&
+          AiTools.map((tool, index) => (
+            <div
+              key={index}
+              className="flex items-end justify-between p-4 min-w-[350px] max-w-[350px]  bg-zinc-800 rounded-xl"
+            >
+              <Image
+                src={tool.banner}
+                alt={tool.name}
+                width={300}
+                height={300}
+                className="w-[200px]"
+              />
+              <div>
+                <h2 className="font-bold text-lg">{tool.name}</h2>
+                <p className="opacity-60 mt-2 text-xs">{tool.description}</p>
+                <Button className="mt-4">Try it out</Button>
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+};
+
+export default AiToolList;
