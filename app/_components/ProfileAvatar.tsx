@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 
 function ProfileAvatar() {
   const user = useAuthContext();
-  console.log(user);
+
   const router = useRouter();
   const onButtonPress = () => {
     signOut(auth)

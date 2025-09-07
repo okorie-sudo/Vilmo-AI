@@ -1,10 +1,16 @@
 "use client";
 
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, Monitor, Smartphone, Sparkles, Square } from "lucide-react";
+import {
+  ImagePlus,
+  Loader2Icon,
+  Monitor,
+  Smartphone,
+  Sparkles,
+  Square,
+} from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
-
 import {
   Select,
   SelectContent,
@@ -14,16 +20,45 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const FormInput = () => {
-  const [filePreview, setFilePreview] = useState<string | null>();
+type Props = {
+  handleInputChange: (field: string, value: string | File) => void;
+  onGenerate: () => void;
+  loading: boolean;
+};
 
-  const handleFileSelect = (fileUrl: FileList | null) => {
-    if (!fileUrl || fileUrl.length == 0) return;
-    if (fileUrl[0].size > 5 * 1024 * 1024) {
+const FormInput = ({ handleInputChange, onGenerate, loading }: Props) => {
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (file.size > 5 * 1024 * 1024) {
       alert("File size is greater than 5MB");
       return;
     }
-    setFilePreview(URL.createObjectURL(fileUrl[0]));
+ 
+    handleInputChange("file", file);
+    setFilePreview(URL.createObjectURL(file));
+  };
+
+  const handleSampleImageSelect = async (imageUrl: string) => {
+    try {
+  
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const file = new File([blob], imageUrl.split("/").pop() || "sample.png", {
+        type: blob.type,
+      });
+
+      handleInputChange("file", file);
+      setFilePreview(URL.createObjectURL(file));
+    } catch (err) {
+      console.error("Failed to fetch sample image:", err);
+      alert("Failed to load sample image");
+    }
   };
 
   const sampleProducts = [
@@ -55,7 +90,7 @@ const FormInput = () => {
                 alt="Product preview"
                 width={300}
                 height={300}
-                className="w-full object-contain h-full max-h-[200px] "
+                className="w-full object-contain h-full max-h-[200px]"
               />
             )}
           </label>
@@ -67,34 +102,32 @@ const FormInput = () => {
             onChange={(e) => handleFileSelect(e.target.files)}
           />
         </div>
-        {/* Product Samples */}
-
         <h2 className="mb-5 opacity-40 text-center text-lg">Click to select</h2>
         <div className="flex gap-5 items-center flex-wrap">
-          {sampleProducts &&
-            sampleProducts.map((product, index) => (
-              <Image
-                key={index}
-                src={product}
-                alt={product}
-                width={100}
-                height={100}
-                className="w-[60px] h-[60px] rounded-full cursor-pointer hover:scale-110 duration-300 transition"
-                onClick={() => setFilePreview(product)}
-              />
-            ))}
+          {sampleProducts.map((product, index) => (
+            <Image
+              key={index}
+              src={product}
+              alt={product}
+              width={100}
+              height={100}
+              className="w-[60px] h-[60px] rounded-full cursor-pointer hover:scale-110 duration-300 transition"
+              onClick={() => handleSampleImageSelect(product)}
+            />
+          ))}
         </div>
       </div>
       <div className="mt-8">
         <h2 className="font-semibold">2. Describe Product</h2>
         <Textarea
-          placeholder="describe the product as best as you can"
-          className="m-h-[`50px mt-4"
+          placeholder="Describe the product as best as you can"
+          className="min-h-[50px] mt-4"
+          onChange={(e) => handleInputChange("description", e.target.value)}
         />
       </div>
       <div className="mt-8">
         <h2 className="font-semibold">3. Select Resolution</h2>
-        <Select>
+        <Select onValueChange={(value) => handleInputChange("size", value)}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Click to select" />
           </SelectTrigger>
@@ -120,11 +153,11 @@ const FormInput = () => {
           </SelectContent>
         </Select>
       </div>
-
-      <Button className="mt-5 w-full">
-        <Sparkles /> Generate
+      <Button className="mt-5 w-full" onClick={onGenerate} disabled={loading}>
+        {loading ? <Loader2Icon className="animate-spin" /> : <Sparkles />}
+        Generate
       </Button>
-      <h2 className="mt-1 text-xs opacity-35 "> Costs 5 Credit</h2>
+      <h2 className="mt-1 text-xs opacity-35">Costs 5 Credits</h2>
     </div>
   );
 };

@@ -19,7 +19,6 @@ function Provider({
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        console.log(user);
 
         // Save to Firestore if not exists
         const userRef = doc(db, "users", user.uid);
