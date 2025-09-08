@@ -1,24 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FormInput from "../_components/FormInput";
 import Preview from "../_components/Preview";
 import axios from "axios";
+import { useAuthContext } from "@/app/provider";
 
 type FormData = {
   file?: File;
   description: string;
   size: string;
   imageUrl?: string;
+  userEmail: any;
 };
 
 const ProductImages = () => {
+  const { user } = useAuthContext();
   const [formData, setFormData] = useState<FormData>({
     description: "",
     size: "",
     file: undefined,
     imageUrl: undefined,
+    userEmail: user?.email,
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +52,7 @@ const ProductImages = () => {
     formData_.append("file", formData.file);
     formData_.append("description", formData.description);
     formData_.append("size", formData.size);
+    formData_.append("userEmail", formData?.userEmail);
 
     try {
       const result = await axios.post(
@@ -67,6 +73,16 @@ const ProductImages = () => {
     }
   };
 
+  // Update formData.userEmail when user changes to make sure formdata is being set properly
+  useEffect(() => {
+    if (user?.email) {
+      setFormData((prev) => ({
+        ...prev,
+        userEmail: user.email,
+      }));
+    }
+  }, [user]);
+
   return (
     <div>
       <h2 className="font-bold mb-2 text-xl">Smart Image Generator</h2>
@@ -79,7 +95,7 @@ const ProductImages = () => {
             loading={loading}
           />
         </div>
-        <div className="md:grid-cols-2">
+        <div className="md:col-span-2">
           <Preview />
         </div>
       </div>
