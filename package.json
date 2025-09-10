@@ -30,6 +30,7 @@
     "openai": "^5.19.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "replicate": "^1.1.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },

@@ -4,11 +4,13 @@ import { db } from "@/configs/firebaseConfig";
 import { query, collection, where, onSnapshot } from "firebase/firestore";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Download, Ghost, Loader, Sparkles } from "lucide-react";
+import { Download, Loader, Loader2Icon, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 const VideoPreview = () => {
   const [productList, setProductList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuthContext();
 
   const downloadImage = async (url: string) => {
@@ -23,6 +25,26 @@ const VideoPreview = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(blobUrl);
+  };
+
+  const generateVideo = async (config: any) => {
+    setLoading(true);
+
+    const configObj = {
+      imageUrl: config?.initialProductImageUrl,
+      uid: user?.uid,
+      prompt: config?.imageToVideoPrompt,
+      documentId: config?.id,
+    };
+
+    try {
+      const result = await axios.post("/api/generate-product-video", configObj);
+      setLoading(false);
+      console.log(result.data);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -92,6 +114,7 @@ const VideoPreview = () => {
                       >
                         <Download />
                       </Button>
+
                       <Button variant="ghost">
                         <Link
                           href={product.initialProductImageUrl}
@@ -100,7 +123,30 @@ const VideoPreview = () => {
                           View
                         </Link>
                       </Button>
+                      {product?.videoUrl && (
+                        <Button>
+                          <Link href={product?.videoUrl} target="_blank">
+                            <Play />
+                          </Link>
+                        </Button>
+                      )}
                     </div>
+                    {product.imageToVideoStatus === "pending" ? (
+                      <Button
+                        disabled={true}
+                        onClick={() => generateVideo(product)}
+                      >
+                        <Loader2Icon className="animate-spin" /> On it..
+                      </Button>
+                    ) : (
+                      <>
+                        {!product.videoUrl && (
+                          <Button onClick={() => generateVideo(product)}>
+                            <Sparkles /> Animate
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </>
               )}

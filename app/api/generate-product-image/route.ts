@@ -2,8 +2,20 @@
 import { db } from "@/configs/firebaseConfig";
 import { imagekit } from "@/lib/imagekit";
 import { client } from "@/lib/openai";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
+
+// using universal for now but wil definitely make it dynamic later
+const imageToVideoPrompts =
+  "Animate this advert image into a sleek short video with smooth zoom, parallax depth, and flowing text transitions. Keep it clean, modern, and professional, highlighting the product and message with subtle, engaging motion.";
 
 export async function POST(req: NextRequest) {
   let documentId: string = "";
@@ -31,6 +43,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    //we need to update credit balance when we perform some actions so we need to fetch the user document and update it as we see fit.
+
+    const userRef = collection(db, "users");
+    const q = query(userRef, where("email", "==", userEmail));
+    const querySnapshot = await getDocs(q);
+    const userDocument = querySnapshot.docs[0];
+    const userInfo = userDocument.data();
 
     //Save to Database
     const docId = Date.now().toString();
@@ -124,6 +144,12 @@ export async function POST(req: NextRequest) {
       finalProductImageUrl: uploadResult?.url,
       initialProductImageUrl: imageKitRef.url,
       status: "completed",
+      imageToVideoPrompt: imageToVideoPrompts,
+    });
+
+    //this is where we update user credit
+    await updateDoc(doc(db, "users", userInfo.uid), {
+      creditsBalance: userInfo.creditsBalance - 5,
     });
 
     // return url of generated image for front end consumption....
@@ -138,6 +164,7 @@ export async function POST(req: NextRequest) {
     await updateDoc(doc(db, "user-ads", documentId), {
       finalProductImageUrl: "undefined",
       initialProductImageUrl: initialProductUrl,
+      imageToVideoPrompt: imageToVideoPrompts,
       status: "Finished with error",
     });
     return NextResponse.json(

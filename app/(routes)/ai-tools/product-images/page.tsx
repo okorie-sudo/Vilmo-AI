@@ -6,6 +6,9 @@ import Preview from "../_components/Preview";
 import axios from "axios";
 import { useAuthContext } from "@/app/provider";
 
+
+
+
 type FormData = {
   file?: File;
   description: string;
@@ -13,6 +16,8 @@ type FormData = {
   imageUrl?: string;
   userEmail: any;
 };
+
+
 
 const ProductImages = () => {
   const { user } = useAuthContext();
