@@ -17,6 +17,9 @@ import { NextRequest, NextResponse } from "next/server";
 const imageToVideoPrompts =
   "Animate this advert image into a sleek short video with smooth zoom, parallax depth, and flowing text transitions. Keep it clean, modern, and professional, highlighting the product and message with subtle, engaging motion.";
 
+const AVATAR_PROMPT =
+  "Create a sleek luxury advertisement where the selected avatar elegantly holds the product. Use refined lighting, a sophisticated setting, and ensure the product is the focal point, exuding exclusivity and premium appeal.";
+
 export async function POST(req: NextRequest) {
   let documentId: string = "";
   let initialProductUrl: string = "";
@@ -28,6 +31,7 @@ export async function POST(req: NextRequest) {
     const description = formData.get("description") as string;
     const size = formData.get("size") as string;
     const userEmail = formData?.get("userEmail");
+    const avatar = formData?.get("avatar") as string;
 
     // Validate inputs
     if (!file || typeof file === "string") {
@@ -88,7 +92,10 @@ export async function POST(req: NextRequest) {
           content: [
             {
               type: "input_text",
-              text: "Generate a prompt for porduct image and video based on that image okay?",
+              text:
+                avatar?.length > 0
+                  ? AVATAR_PROMPT
+                  : "Generate a prompt for porduct image and video based on that image okay?",
             },
 
             { type: "input_image", image_url: imageKitRef.url },
@@ -117,6 +124,9 @@ export async function POST(req: NextRequest) {
               type: "input_image",
               image_url: imageKitRef.url,
             },
+            ...(avatar.length > 2
+              ? [{ type: "input_image", image_url: avatar }]
+              : []),
           ],
         },
       ],

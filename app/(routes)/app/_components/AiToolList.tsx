@@ -32,23 +32,25 @@ const AiToolList = () => {
   return (
     <div className="">
       <h2 className="font-bold text-2xl mb-2">Tools</h2>
-      <div className="flex justify-end flex-wrap items-center gap-3">
+      <div className="flex justify-start flex-wrap items-center gap-3">
         {AiTools &&
           AiTools.map((tool, index) => (
             <div
               key={index}
-              className="flex items-end justify-between p-4 min-w-[350px] max-w-[350px]  bg-zinc-800 rounded-xl"
+              className="flex items-end justify-between p-2 w-[250px] max-w-[350px]  bg-zinc-800 rounded-xl"
             >
               <Image
                 src={tool.banner}
                 alt={tool.name}
                 width={300}
                 height={300}
-                className="w-[200px]"
+                className="w-[150px] h-[150px]"
               />
               <div>
-                <h2 className="font-bold text-lg">{tool.name}</h2>
-                <p className="opacity-60 mt-2 text-xs">{tool.description}</p>
+                <h2 className="font-bold text-md">{tool.name}</h2>
+                <p className="opacity-60 mt-2 text-[10px]">
+                  {tool.description}
+                </p>
                 <Button className="mt-4">
                   <Link className="w-full h-full" href={tool.path}>
                     Try it out

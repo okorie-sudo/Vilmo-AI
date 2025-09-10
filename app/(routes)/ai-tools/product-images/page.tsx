@@ -6,18 +6,13 @@ import Preview from "../_components/Preview";
 import axios from "axios";
 import { useAuthContext } from "@/app/provider";
 
-
-
-
 type FormData = {
   file?: File;
   description: string;
   size: string;
-  imageUrl?: string;
   userEmail: any;
+  imageUrl?: string;
 };
-
-
 
 const ProductImages = () => {
   const { user } = useAuthContext();
@@ -58,6 +53,7 @@ const ProductImages = () => {
     formData_.append("description", formData.description);
     formData_.append("size", formData.size);
     formData_.append("userEmail", formData?.userEmail);
+  
 
     try {
       const result = await axios.post(
@@ -95,6 +91,7 @@ const ProductImages = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div>
           <FormInput
+            enableAvatars={false}
             handleInputChange={handleInputChange}
             onGenerate={onGenerate}
             loading={loading}

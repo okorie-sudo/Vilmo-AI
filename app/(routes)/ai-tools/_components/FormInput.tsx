@@ -24,10 +24,17 @@ type Props = {
   handleInputChange: (field: string, value: string | File) => void;
   onGenerate: () => void;
   loading: boolean;
+  enableAvatars: boolean;
 };
 
-const FormInput = ({ handleInputChange, onGenerate, loading }: Props) => {
+const FormInput = ({
+  handleInputChange,
+  onGenerate,
+  loading,
+  enableAvatars,
+}: Props) => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>();
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -36,14 +43,13 @@ const FormInput = ({ handleInputChange, onGenerate, loading }: Props) => {
       alert("File size is greater than 5MB");
       return;
     }
- 
+
     handleInputChange("file", file);
     setFilePreview(URL.createObjectURL(file));
   };
 
   const handleSampleImageSelect = async (imageUrl: string) => {
     try {
-  
       const response = await fetch(imageUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -69,9 +75,19 @@ const FormInput = ({ handleInputChange, onGenerate, loading }: Props) => {
     "/ice-creame.png",
   ];
 
+  const avatarsList = [
+    { name: "Avatar 1", imageUrl: "/avatar-1.jpg" },
+    { name: "Avatar 2", imageUrl: "/avatar-2.jpg" },
+    { name: "Avatar 3", imageUrl: "/avatar-3.jpg" },
+    { name: "Avatar 4", imageUrl: "/avatar-4.jpg" },
+    { name: "Avatar 5", imageUrl: "/avatar-5.jpg" },
+    { name: "Avatar 6", imageUrl: "/avatar-6.jpg" },
+  ];
+
   return (
     <div>
       <div>
+        -.
         <h2 className="font-semibold">1. Upload Image</h2>
         <div>
           <label
@@ -102,20 +118,54 @@ const FormInput = ({ handleInputChange, onGenerate, loading }: Props) => {
             onChange={(e) => handleFileSelect(e.target.files)}
           />
         </div>
-        <h2 className="mb-5 opacity-40 text-center text-lg">Click to select</h2>
-        <div className="flex gap-5 items-center flex-wrap">
-          {sampleProducts.map((product, index) => (
-            <Image
-              key={index}
-              src={product}
-              alt={product}
-              width={100}
-              height={100}
-              className="w-[60px] h-[60px] rounded-full cursor-pointer hover:scale-110 duration-300 transition"
-              onClick={() => handleSampleImageSelect(product)}
-            />
-          ))}
-        </div>
+        {!enableAvatars && (
+          <>
+            <h2 className="mb-5 opacity-40 text-center text-lg">
+              Click to select
+            </h2>
+            <div className="flex gap-5 items-center flex-wrap">
+              {/* sample products */}
+
+              {sampleProducts &&
+                sampleProducts.map((product, index) => (
+                  <Image
+                    key={index}
+                    src={product}
+                    alt={product}
+                    width={100}
+                    height={100}
+                    className="w-[60px] h-[60px] rounded-full cursor-pointer hover:scale-110 duration-300 transition"
+                    onClick={() => handleSampleImageSelect(product)}
+                  />
+                ))}
+            </div>
+          </>
+        )}
+        {enableAvatars && (
+          <div>
+            <h2 className="my-2 font-bold text-xl">Select Avatar</h2>
+            <div className="flex w-full flex-wrap gap-6">
+              {avatarsList.length &&
+                avatarsList.map((avatar, index) => (
+                  <Image
+                    key={index}
+                    src={avatar.imageUrl}
+                    alt={avatar.name}
+                    height={200}
+                    width={200}
+                    className={`w-[100px] h-[80px] rounded-lg object-fit hover:scale-105 duration-400 transition-all cursor-pointer ${
+                      selectedAvatar === avatar.imageUrl &&
+                      "border-2 border-primary"
+                    }`}
+                    onClick={() => {
+                      setSelectedAvatar(avatar.imageUrl);
+                      handleInputChange("avatar", avatar.imageUrl);
+                    }}
+                  />
+                ))}
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-8">
         <h2 className="font-semibold">2. Describe Product</h2>
