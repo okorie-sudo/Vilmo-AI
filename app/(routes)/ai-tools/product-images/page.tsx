@@ -5,6 +5,7 @@ import FormInput from "../_components/FormInput";
 import Preview from "../_components/Preview";
 import axios from "axios";
 import { useAuthContext } from "@/app/provider";
+import { useRouter } from "next/navigation";
 
 type FormData = {
   file?: File;
@@ -16,6 +17,7 @@ type FormData = {
 
 const ProductImages = () => {
   const { user } = useAuthContext();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     description: "",
     size: "",
@@ -53,7 +55,6 @@ const ProductImages = () => {
     formData_.append("description", formData.description);
     formData_.append("size", formData.size);
     formData_.append("userEmail", formData?.userEmail);
-  
 
     try {
       const result = await axios.post(
@@ -73,6 +74,12 @@ const ProductImages = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user === null) {
+      router.push("/login");
+    }
+  }, [user, router]);
 
   // Update formData.userEmail when user changes to make sure formdata is being set properly
   useEffect(() => {

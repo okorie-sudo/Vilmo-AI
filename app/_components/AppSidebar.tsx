@@ -36,12 +36,12 @@ const items = [
   },
   {
     title: "Creative Tools",
-    url: "/creative-tools",
+    url: "/ai-tools",
     icon: Inbox,
   },
   {
     title: "My Ads",
-    url: "#",
+    url: "/my-ads",
     icon: Megaphone,
   },
   {

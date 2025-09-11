@@ -5,6 +5,7 @@ import FormInput from "../_components/FormInput";
 import VideoPreview from "../_components/VideoPreview";
 import axios from "axios";
 import { useAuthContext } from "@/app/provider";
+import { useRouter } from "next/navigation";
 
 type FormData = {
   file?: File;
@@ -16,6 +17,7 @@ type FormData = {
 
 const ProductVideos = () => {
   const { user } = useAuthContext();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     description: "",
     size: "",
@@ -73,6 +75,12 @@ const ProductVideos = () => {
     }
   };
 
+  useEffect(() => {
+    if (user === null) {
+      router.push("/login");
+    }
+  });
+
   // Update formData.userEmail when user changes to make sure formdata is being set properly
   useEffect(() => {
     if (user?.email) {
@@ -90,6 +98,7 @@ const ProductVideos = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div>
           <FormInput
+            enableAvatars={false}
             handleInputChange={handleInputChange}
             onGenerate={onGenerate}
             loading={loading}

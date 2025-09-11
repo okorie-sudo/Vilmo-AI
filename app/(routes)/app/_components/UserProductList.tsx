@@ -56,7 +56,9 @@ const UserProductList = () => {
             alt="empty"
           />
           <h2 className="text-xl">Product list is empty</h2>
-          <Button>Create new Product</Button>
+          <Button>
+            <Link href={user ? "/ai-tools" : "/login"}>Create new Product</Link>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4">

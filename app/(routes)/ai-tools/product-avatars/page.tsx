@@ -5,6 +5,7 @@ import FormInput from "../_components/FormInput";
 import Preview from "../_components/Preview";
 import axios from "axios";
 import { useAuthContext } from "@/app/provider";
+import { useRouter } from "next/navigation";
 
 type FormData = {
   file?: File;
@@ -17,6 +18,7 @@ type FormData = {
 
 const ProductAvatars = () => {
   const { user } = useAuthContext();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     description: "",
     size: "",
@@ -75,6 +77,11 @@ const ProductAvatars = () => {
     }
   };
 
+  useEffect(() => {
+    if (user === null) {
+      router.push("/login");
+    }
+  });
   // Update formData.userEmail when user changes to make sure formdata is being set properly
   useEffect(() => {
     if (user?.email) {
