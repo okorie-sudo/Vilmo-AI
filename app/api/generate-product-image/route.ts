@@ -12,8 +12,9 @@ import {
   where,
 } from "firebase/firestore";
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
 
-// using universal for now but wil definitely make it dynamic later
+// Using universal prompt for now but will make it dynamic later
 const imageToVideoPrompts =
   "Animate this advert image into a sleek short video with smooth zoom, parallax depth, and flowing text transitions. Keep it clean, modern, and professional, highlighting the product and message with subtle, engaging motion.";
 
@@ -48,15 +49,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    //we need to update credit balance when we perform some actions so we need to fetch the user document and update it as we see fit.
-
+    // Fetch user document to update credit balance
     const userRef = collection(db, "users");
     const q = query(userRef, where("email", "==", userEmail));
     const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
     const userDocument = querySnapshot.docs[0];
     const userInfo = userDocument.data();
 
-    //Save to Database
+    // Save to Database
     const docId = Date.now().toString();
     documentId = docId;
     console.log("Document created", "document Id:", docId);
@@ -81,75 +84,86 @@ export async function POST(req: NextRequest) {
     console.log("ImageKit upload success:", imageKitRef.url);
     initialProductUrl = imageKitRef.url;
 
-    //Generate product image prompt
-
-    const response = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: [
-        //@ts-ignore
+    // Generate product image prompt using OpenAI
+    const promptResponse = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
         {
           role: "user",
           content: [
             {
-              type: "input_text",
+              type: "text" as const,
               text:
                 avatar?.length > 0
                   ? AVATAR_PROMPT
-                  : "Generate a prompt for porduct image and video based on that image okay?",
-            },
-
-            { type: "input_image", image_url: imageKitRef.url },
-          ],
-        },
-      ],
-    });
-
-    const textOutput = response.output_text.trim();
-    let json = JSON.parse(textOutput);
-
-    const imageResponse = await client.responses.create({
-      model: "gpt-4.1-mini",
-      max_output_tokens: 500,
-      input: [
-        //@ts-ignore
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              //@ts-ignore
-              text: json?.textToImage,
+                  : `Generate a prompt for product image and video based on the provided image and description: ${description}`,
             },
             {
-              type: "input_image",
-              image_url: imageKitRef.url,
+              type: "image_url" as const,
+              image_url: {
+                url: imageKitRef.url,
+              },
             },
-            ...(avatar.length > 2
-              ? [{ type: "input_image", image_url: avatar }]
+            ...(avatar?.length > 2
+              ? [
+                  {
+                    type: "image_url" as const,
+                    image_url: {
+                      url: avatar,
+                    },
+                  },
+                ]
               : []),
-          ],
+          ] as Array<OpenAI.Chat.Completions.ChatCompletionContentPart>,
         },
       ],
-      tools: [{ type: "image_generation" }],
     });
 
-    //generate ai image here
+    // Extract the generated prompt
+    const textOutput = promptResponse.choices[0]?.message?.content?.trim();
+    if (!textOutput) {
+      throw new Error("Failed to generate text prompt");
+    }
+    let json;
+    try {
+      json = JSON.parse(textOutput);
+    } catch (e) {
+      console.error("Failed to parse textOutput as JSON:", textOutput);
+      throw new Error("Invalid text prompt format");
+    }
 
-    const imageData = imageResponse.output
-      ?.filter((item) => item.type === "image_generation_call")
-      .map((item: any) => item.result);
+    // Generate image using OpenAI's image generation API
+    const imageResponse = await client.images.generate({
+      model: "dall-e-3",
+      prompt:
+        json?.textToImage ||
+        `Generate a product advertisement image based on: ${description}`,
+      n: 1,
+      size:
+        size === "small"
+          ? "256x256"
+          : size === "medium"
+          ? "512x512"
+          : "1024x1024",
+      response_format: "b64_json",
+    });
 
-    // upload generated base64 image to imagekit
-
-    const generatedImage = imageData[0]; //base64 Image
+    // Extract generated image
+    if (!imageResponse.data || imageResponse.data.length === 0) {
+      throw new Error("Failed to generate image: No data returned");
+    }
+    const generatedImage = imageResponse.data[0].b64_json;
+    if (!generatedImage) {
+      throw new Error("Failed to generate image: No base64 data");
+    }
+    // Upload generated base64 image to ImageKit
     const uploadResult = await imagekit.upload({
       file: `data:image/png;base64,${generatedImage}`,
       fileName: `generated-${Date.now()}.png`,
       isPublished: true,
     });
 
-    // update document
-
+    // Update document
     await updateDoc(doc(db, "user-ads", docId), {
       finalProductImageUrl: uploadResult?.url,
       initialProductImageUrl: imageKitRef.url,
@@ -157,26 +171,26 @@ export async function POST(req: NextRequest) {
       imageToVideoPrompt: imageToVideoPrompts,
     });
 
-    //this is where we update user credit
+    // Update user credit
     await updateDoc(doc(db, "users", userInfo.uid), {
       creditsBalance: userInfo.creditsBalance - 5,
     });
 
-    // return url of generated image for front end consumption....
-
-    return NextResponse.json(uploadResult?.url);
-    // return NextResponse.json({ url: imageKitRef.url }, { status: 200 });
+    // Return URL of generated image for frontend
+    return NextResponse.json({ url: uploadResult?.url }, { status: 200 });
   } catch (error: any) {
     console.error("Image upload error:", {
       message: error.message,
       stack: error.stack,
     });
-    await updateDoc(doc(db, "user-ads", documentId), {
-      finalProductImageUrl: "undefined",
-      initialProductImageUrl: initialProductUrl,
-      imageToVideoPrompt: imageToVideoPrompts,
-      status: "Finished with error",
-    });
+    if (documentId) {
+      await updateDoc(doc(db, "user-ads", documentId), {
+        finalProductImageUrl: "undefined",
+        initialProductImageUrl: initialProductUrl,
+        imageToVideoPrompt: imageToVideoPrompts,
+        status: "Finished with error",
+      });
+    }
     return NextResponse.json(
       { message: "Failed to upload image", error: error.message },
       { status: 500 }
